@@ -34,26 +34,7 @@ public class Start {
 		}
 		System.out.println("we have a bus... ?");
 
-//		ProxyBusObject mProxyObj = mBus.getProxyBusObject(
-//				"org.my.well.known.name", "/servicepath",
-//				BusAttachment.SESSION_ID_ANY,
-//				new Class[] { HelloInterface.class });
-//
-//		HelloInterface myInterface = mProxyObj
-//				.getInterface(HelloInterface.class);
-//
-//		status = mBus.registerSignalHandlers(myInterface);
-//		if (status != Status.OK) {
-//			System.out.println("BusAttachment.registerSignalHandlers() failed:"
-//					+ status);
-//			System.exit(0);
-//			return;
-//		}
-
 		status = mBus.registerBusObject(hello, "/servicepath");
-		// mBus.getProxyBusObject("com.sweeneyb.alljoyn.HelloInterface",
-		// "/servicepath", BusAttachment.SESSION_ID_ANY, new
-		// Class[]{HelloInterface.class});
 		if (Status.OK != status) {
 			System.out.println("BusAttachment.registerBusObject() failed: "
 					+ status);
