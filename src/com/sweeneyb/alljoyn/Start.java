@@ -89,15 +89,15 @@ public class Start {
 			System.exit(0);
 			return;
 		}
-//		while (true) {
-//			try {
-//				Thread.sleep(1000);
-//			} catch (InterruptedException e) {
-//				// ignore;
-//			}
-//		}
-		 Client client = new Client();
-		 client.fireClient();
+		while (true) {
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				// ignore;
+			}
+		}
+//		 Client client = new Client();
+//		 client.fireClient();
 	}
 
 

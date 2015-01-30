@@ -21,8 +21,8 @@ public class Client {
 	}
 
 	public void fireClient() {
-		final BusAttachment mBus = new BusAttachment(Start.APPNAME,
-				BusAttachment.RemoteMessage.Receive);
+		System.loadLibrary("alljoyn_java");
+		final BusAttachment mBus = new BusAttachment(Start.APPNAME);
 		mBus.registerBusListener(new BusListener() {
 			@Override
 			public void foundAdvertisedName(String name, short transport,
@@ -82,5 +82,34 @@ public class Client {
 		} else {
 			System.out.println("ad name found");
 		}
+		
+		ProxyBusObject mProxyObj = mBus.getProxyBusObject(
+				Start.SERVICE_NAME, "/servicepath",
+				BusAttachment.SESSION_ID_ANY,
+				new Class[] { HelloInterface.class });
+
+		HelloInterface iface = mProxyObj
+				.getInterface(HelloInterface.class);
+
+		status = mBus.registerSignalHandlers(this);
+		if (status != Status.OK) {
+			System.out
+					.println("BusAttachment.registerSignalHandlers() failed:"
+							+ status);
+			System.exit(0);
+			return;
+		}
+		try {
+			Thread.sleep(1000);
+		}catch (InterruptedException e){
+			//ignore
+		}
+
+//		try {
+//			System.out.println("property gotten from remote: "+iface.GetMyProperty());
+//		} catch (BusException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
 	}
 }
