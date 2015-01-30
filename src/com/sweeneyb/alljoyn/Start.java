@@ -89,16 +89,28 @@ public class Start {
 			System.exit(0);
 			return;
 		}
-		System.out.println("client firing.");
-		Client client = new Client();
-		client.fireClient();
+//		while (true) {
+//			try {
+//				Thread.sleep(1000);
+//			} catch (InterruptedException e) {
+//				// ignore;
+//			}
+//		}
+		 Client client = new Client();
+		 client.fireClient();
 	}
 
-	static class Client {
-		private static final short CONTACT_PORT=42;
+	public static  class Client {
+		private static final short CONTACT_PORT = 42;
+
+		public static void main(String args[]) {
+			Client client = new Client();
+			client.fireClient();
+		}
+
 		public void fireClient() {
-			final BusAttachment mBus = new BusAttachment(APPNAME,
-					RemoteMessage.Receive);
+			final BusAttachment mBus = new BusAttachment(Start.APPNAME,
+					BusAttachment.RemoteMessage.Receive);
 			mBus.registerBusListener(new BusListener() {
 				@Override
 				public void foundAdvertisedName(String name, short transport,
@@ -108,14 +120,38 @@ public class Start {
 					SessionOpts sessionOpts = new SessionOpts();
 					Mutable.IntegerValue sessionId = new Mutable.IntegerValue();
 
-					Status status = mBus.joinSession(SERVICE_NAME,
+					Status status = mBus.joinSession(Start.SERVICE_NAME,
 							contactPort, sessionId, sessionOpts,
 							new SessionListener());
-					if(status == Status.OK){
+					if (status == Status.OK) {
 						System.out.println("session joined");
 					} else {
 						System.out.println("session join failed.");
 					}
+					ProxyBusObject mProxyObj = mBus.getProxyBusObject(
+							Start.SERVICE_NAME, "/servicepath",
+							BusAttachment.SESSION_ID_ANY,
+							new Class[] { HelloInterface.class });
+
+					HelloInterface iface = mProxyObj
+							.getInterface(HelloInterface.class);
+
+					status = mBus.registerSignalHandlers(this);
+					if (status != Status.OK) {
+						System.out
+								.println("BusAttachment.registerSignalHandlers() failed:"
+										+ status);
+						System.exit(0);
+						return;
+					}
+
+					try {
+						System.out.println("property gotten from remote: "+iface.GetMyProperty());
+					} catch (BusException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+
 				}
 			});
 			System.out.println("connecting client...");
@@ -126,35 +162,37 @@ public class Start {
 				return;
 			}
 
-//			ProxyBusObject mProxyObj = mBus.getProxyBusObject(SERVICE_NAME,
-//					"/servicepath", BusAttachment.SESSION_ID_ANY,
-//					new Class[] { HelloInterface.class });
-//
-//			HelloInterface iface = mProxyObj.getInterface(HelloInterface.class);
-//
-//			status = mBus.registerSignalHandlers(this);
-//			if (status != Status.OK) {
-//				System.out
-//						.println("BusAttachment.registerSignalHandlers() failed:"
-//								+ status);
-//				System.exit(0);
-//				return;
-//			}
-//
-//			try {
-//				System.out.println(iface.GetMyProperty());
-//			} catch (BusException e) {
-//				// TODO Auto-generated catch block
-//				e.printStackTrace();
-//			}
-			status = mBus.findAdvertisedName(SERVICE_NAME);
+			// ProxyBusObject mProxyObj = mBus.getProxyBusObject(SERVICE_NAME,
+			// "/servicepath", BusAttachment.SESSION_ID_ANY,
+			// new Class[] { HelloInterface.class });
+			//
+			// HelloInterface iface =
+			// mProxyObj.getInterface(HelloInterface.class);
+			//
+			// status = mBus.registerSignalHandlers(this);
+			// if (status != Status.OK) {
+			// System.out
+			// .println("BusAttachment.registerSignalHandlers() failed:"
+			// + status);
+			// System.exit(0);
+			// return;
+			// }
+			//
+			// try {
+			// System.out.println(iface.GetMyProperty());
+			// } catch (BusException e) {
+			// // TODO Auto-generated catch block
+			// e.printStackTrace();
+			// }
+			status = mBus.findAdvertisedName(Start.SERVICE_NAME);
 			if (status != Status.OK) {
 				System.out.println("ad name not found");
-			   System.exit(0);
-			   return;
+				System.exit(0);
+				return;
 			} else {
 				System.out.println("ad name found");
 			}
 		}
 	}
+
 }
