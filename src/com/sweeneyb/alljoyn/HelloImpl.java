@@ -1,5 +1,8 @@
 package com.sweeneyb.alljoyn;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+
 import org.alljoyn.bus.BusException;
 import org.alljoyn.bus.BusObject;
 
@@ -19,7 +22,16 @@ public class HelloImpl implements HelloInterface, BusObject {
 
 	@Override
 	public String GetMyProperty() throws BusException {
-		return "foo";
+		try {
+			String host = InetAddress.getLocalHost().getHostName();
+			System.out.println("returning "+host);
+			return host;
+		} catch (UnknownHostException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		System.out.println("returning bar");
+		return "bar";
 	}
 
 	@Override
