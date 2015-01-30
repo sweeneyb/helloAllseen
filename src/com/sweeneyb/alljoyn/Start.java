@@ -3,8 +3,10 @@ package com.sweeneyb.alljoyn;
 import org.alljoyn.bus.BusAttachment;
 import org.alljoyn.bus.BusAttachment.RemoteMessage;
 import org.alljoyn.bus.BusException;
+import org.alljoyn.bus.BusListener;
 import org.alljoyn.bus.Mutable;
 import org.alljoyn.bus.ProxyBusObject;
+import org.alljoyn.bus.SessionListener;
 import org.alljoyn.bus.SessionOpts;
 import org.alljoyn.bus.SessionPortListener;
 import org.alljoyn.bus.Status;
@@ -74,6 +76,7 @@ public class Start {
 
 		status = mBus.advertiseName(SERVICE_NAME, SessionOpts.TRANSPORT_ANY);
 		if (status != Status.OK) {
+			System.out.println("unable to advertise name.");
 			/*
 			 * If we are unable to advertise the name, release the well-known
 			 * name from the local bus.
@@ -86,15 +89,36 @@ public class Start {
 			System.exit(0);
 			return;
 		}
-
+		System.out.println("client firing.");
 		Client client = new Client();
 		client.fireClient();
 	}
 
 	static class Client {
+		private static final short CONTACT_PORT=42;
 		public void fireClient() {
-			BusAttachment mBus = new BusAttachment(APPNAME);
+			final BusAttachment mBus = new BusAttachment(APPNAME,
+					RemoteMessage.Receive);
+			mBus.registerBusListener(new BusListener() {
+				@Override
+				public void foundAdvertisedName(String name, short transport,
+						String namePrefix) {
+					mBus.enableConcurrentCallbacks();
+					short contactPort = CONTACT_PORT;
+					SessionOpts sessionOpts = new SessionOpts();
+					Mutable.IntegerValue sessionId = new Mutable.IntegerValue();
 
+					Status status = mBus.joinSession(SERVICE_NAME,
+							contactPort, sessionId, sessionOpts,
+							new SessionListener());
+					if(status == Status.OK){
+						System.out.println("session joined");
+					} else {
+						System.out.println("session join failed.");
+					}
+				}
+			});
+			System.out.println("connecting client...");
 			Status status = mBus.connect();
 			if (Status.OK != status) {
 				System.out.println("BusAttachment.connect() failed:" + status);
@@ -102,26 +126,34 @@ public class Start {
 				return;
 			}
 
-			ProxyBusObject mProxyObj = mBus.getProxyBusObject(SERVICE_NAME,
-					"/servicepath", BusAttachment.SESSION_ID_ANY,
-					new Class[] { HelloInterface.class });
-
-			HelloInterface iface = mProxyObj.getInterface(HelloInterface.class);
-
-			status = mBus.registerSignalHandlers(this);
+//			ProxyBusObject mProxyObj = mBus.getProxyBusObject(SERVICE_NAME,
+//					"/servicepath", BusAttachment.SESSION_ID_ANY,
+//					new Class[] { HelloInterface.class });
+//
+//			HelloInterface iface = mProxyObj.getInterface(HelloInterface.class);
+//
+//			status = mBus.registerSignalHandlers(this);
+//			if (status != Status.OK) {
+//				System.out
+//						.println("BusAttachment.registerSignalHandlers() failed:"
+//								+ status);
+//				System.exit(0);
+//				return;
+//			}
+//
+//			try {
+//				System.out.println(iface.GetMyProperty());
+//			} catch (BusException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			}
+			status = mBus.findAdvertisedName(SERVICE_NAME);
 			if (status != Status.OK) {
-				System.out
-						.println("BusAttachment.registerSignalHandlers() failed:"
-								+ status);
-				System.exit(0);
-				return;
-			}
-
-			try {
-				System.out.println(iface.GetMyProperty());
-			} catch (BusException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				System.out.println("ad name not found");
+			   System.exit(0);
+			   return;
+			} else {
+				System.out.println("ad name found");
 			}
 		}
 	}
