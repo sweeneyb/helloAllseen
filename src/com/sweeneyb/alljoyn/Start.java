@@ -4,6 +4,7 @@ import org.alljoyn.bus.BusAttachment;
 import org.alljoyn.bus.BusException;
 import org.alljoyn.bus.ProxyBusObject;
 import org.alljoyn.bus.Status;
+import org.alljoyn.bus.BusAttachment.RemoteMessage;
 
 public class Start {
 	
@@ -12,9 +13,20 @@ public class Start {
 
 	public static void main(String[] args) {
 		System.loadLibrary("alljoyn_java");
-		BusAttachment mBus = new BusAttachment(APPNAME);
+		BusAttachment mBus = new BusAttachment(APPNAME, RemoteMessage.Receive);
 		HelloInterface hello = new HelloImpl();
-		Status status = mBus.connect();
+		Status status = null;
+		
+		status = mBus.registerBusObject(hello, "/servicepath");
+		if (Status.OK != status) {
+			System.out.println("BusAttachment.registerBusObject() failed: "
+					+ status);
+
+			System.exit(0);
+			return;
+		}
+
+		status= mBus.connect();
 		if (Status.OK != status) {
 			System.out.println("BusAttachment.connect() failed: " + status);
 
@@ -23,6 +35,8 @@ public class Start {
 		} else {
 			System.out.println("connect OK");
 		}
+		System.out.println(status);
+		
 		status = mBus.requestName(SERVICE_NAME, 0);
 		if (Status.OK != status) {
 			System.out.println("BusAttachment.requestName() failed: " + status);
@@ -33,18 +47,6 @@ public class Start {
 			System.out.println("requestName OK");
 		}
 		System.out.println("we have a bus... ?");
-
-		status = mBus.registerBusObject(hello, "/servicepath");
-		if (Status.OK != status) {
-			System.out.println("BusAttachment.registerBusObject() failed: "
-					+ status);
-
-			System.exit(0);
-			return;
-		}
-
-		
-		System.out.println(status);
 		
 		Client client = new Client();
 		client.fireClient();
